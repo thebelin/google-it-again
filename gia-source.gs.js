@@ -682,3 +682,51 @@ function extend() {
   }
   return output;
 }
+
+/**
+ * Create a PDF from the specified template and fill the template in with
+ * the values from tempVals object
+ *
+ * @param string templateId The google docs id of the template to use
+ * @param string pdfName    The document filename to save the file as
+ * @param object tempVals   An object containing keys for all the substitutions in the template
+ * @param bool   truncate   set to true to truncate numbers to 2 digits
+ *
+ * @return {Object/bool} DriveApp.file or false
+ */
+function makePdfFromTemplate (templateId, pdfName, tempVals, truncate) {
+  // Get the pdf, make a copy and then parse the contents into the copyBody
+  var key, newFile, copyFile = DriveApp.getFileById(templateId).makeCopy(),
+      copyId = copyFile.getId(),
+      copyDoc = DocumentApp.openById(copyId),
+      copyBody = copyDoc.getActiveSection();
+
+  // Only process the doc if the settings have been properly provided
+  if (typeof tempVals == 'object') {
+    // Take the tempVals and place them in the copyBody where there are placeholders
+    for (key in tempVals) {
+      // If the value is a number, and truncation is enabled then truncate to 2 decimals max
+      if (!truncate || isNaN(tempVals[key])) {
+        copyBody.replaceText('%' + key + '%', tempVals[key]);
+      } else {
+        copyBody.replaceText('%' + key + '%', Math.round(tempVals[key] * 100) / 100 );
+      }
+    }
+    
+    // Save the temp document and close it
+    copyDoc.saveAndClose();
+     
+    // Create the new pdf document
+    newFile = DriveApp.createFile(copyFile.getAs('application/pdf'));
+    if (pdfName !== '') {
+      newFile.setName(pdfName);
+    }
+    
+    // Trash the temp file which is a google doc file, not pdf
+    copyFile.setTrashed(true);
+    
+    return newFile;
+  }
+  Logger.log('improper makePdf args: ' + typeof tempVals + typeof copyBody);
+  return false;
+}
