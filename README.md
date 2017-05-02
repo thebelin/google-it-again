@@ -4,7 +4,7 @@
 ### Data Access Techniques & G.I.A.
 ---
 #### presented by Belin Fieldson
-#### belin@beanstalkinteractive.com
+#### (@thebelin)[https://twitter.com/thebelin]
 ---
 ## Presentation:
 ### https://goo.gl/8AZzsJ
